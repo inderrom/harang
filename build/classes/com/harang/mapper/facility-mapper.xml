@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+	
+<sqlMap namespace="fac">
+
+	<select id="getFacList" parameterClass="facVo" resultClass="facVo">
+		SELECT * 
+		  FROM FACILITY
+		 WHERE AIRPORT_ID = #airport_id#
+		 <dynamic>
+		 	<isNotEmpty property="fac_type" prepend="AND">
+		 		FAC_TYPE = #fac_type#
+		 	</isNotEmpty>
+		 </dynamic>
+	</select>
+	
+	<select id="getScheduleList" parameterClass="flightVo" resultClass="flightVo">
+		SELECT * 
+		  FROM FLIGHT 
+		  <dynamic prepend="WHERE">
+		  	<isNotEmpty property="airline_name" prepend="AND">
+		 		AIRLINE_NAME = #airline_name#
+		  	</isNotEmpty>
+		  	<isNotEmpty property="fli_depport" prepend="AND">
+		 		FLI_DEPPORT = #fli_depport#
+ 	   <![CDATA[AND FLI_DEPTIME >= TO_CHAR(SYSDATE - (1 / 24), 'HH24MI')]]>
+		 		AND FLI_DAYOFWEEK LIKE '%' || TO_CHAR(SYSDATE, 'DY') || '%'
+		 		ORDER BY FLI_DEPTIME
+		  	</isNotEmpty>
+		  	<isNotEmpty property="fli_arrport" prepend="AND">
+		 		FLI_ARRPORT = #fli_arrport#
+	   <![CDATA[AND FLI_ARRTIME >= TO_CHAR(SYSDATE - (1 / 24), 'HH24MI')]]>
+		 		AND FLI_DAYOFWEEK LIKE '%' || TO_CHAR(SYSDATE, 'DY') || '%'
+		 		ORDER BY FLI_ARRTIME
+		  	</isNotEmpty>
+		  </dynamic>
+	</select>
+	
+	<select id="getParkInfo" parameterClass="String" resultClass="parkVo">
+       SELECT A.PARK_NAME,
+               A.AIRPORT_ID,
+               B.AIRPORT_NAME,
+               A.PARK_MAX,
+               A.PARK_FEE,
+               NVL(A.PARK_FILE,0) PARK_FILE
+          FROM PARKINGLOT A, ( SELECT AIRPORT_ID,
+                                      AIRPORT_NAME
+                                 FROM AIRPORT ) B
+          WHERE B.AIRPORT_ID = A.AIRPORT_ID
+            AND B.AIRPORT_NAME =#AIRPORT_NAME#
+	</select>
+	
+	<select id="getAirportList" resultClass="airportVo">
+	 	SElECT *
+          FROM AIRPORT
+	</select>
+	
+	<select id="getAirlineList" resultClass="airlineVo">
+	      SElECT *
+            FROM AIRLINE
+	</select>
+	
+	<select id="getSelectTransportList" resultClass="transportVo" parameterClass="String">
+			SELECT A.TRAN_TYPE,
+                   A.AIRPORT_ID,
+                   A.TRAN_FILE
+              FROM TRANSPORT A, ( SELECT AIRPORT_NAME,
+                                         AIRPORT_ID
+                                    FROM AIRPORT ) B
+             WHERE A.AIRPORT_ID = B.AIRPORT_ID
+               AND B.AIRPORT_NAME=#airport#
+	</select>
+	
+	<select id="getSelectFacilityList" resultClass="facVo" parameterClass="String">
+			SELECT A.FAC_NUM,
+				   A.AIRPORT_ID,
+       			   A.FAC_NAME,
+      			   A.FAC_POS,
+       			   A.FAC_TYPE,
+       			   A.FAC_FILE   
+  			  FROM FACILITY A, ( SELECT AIRPORT_NAME,
+                             			AIRPORT_ID
+                        		   FROM AIRPORT ) B
+             WHERE A.AIRPORT_ID = B.AIRPORT_ID
+               AND B.AIRPORT_NAME=#airportName#
+             ORDER BY A.FAC_TYPE
+	</select>
+	
+	<select id="getSelectFacilityClassifyList" resultClass="facVo" parameterClass="String">
+			 SELECT DISTINCT A.FAC_TYPE,
+			 				 A.AIRPORT_ID
+   			   FROM FACILITY A, (SELECT AIRPORT_ID,
+   			   							AIRPORT_NAME 
+   			   					   FROM AIRPORT) B
+   			  WHERE A.AIRPORT_ID=B.AIRPORT_ID
+                AND b.AIRPORT_NAME=#airportName#
+	</select>
+	<select id="getclassifyFile" resultClass="facVo" parameterClass="Map">
+			   SELECT A.FAC_NUM,
+			   		  A.FAC_NAME,
+			   		  A.FAC_POS,
+			   		  A.FAC_FILE, 
+			   		  A.AIRPORT_ID,
+			   		  A.FAC_TYPE
+			      FROM FACILITY A, (SELECT AIRPORT_ID,AIRPORT_NAME FROM AIRPORT) B
+			     WHERE A.AIRPORT_ID=B.AIRPORT_ID
+			       AND B.AIRPORT_NAME=#ariportName#
+			       AND A.FAC_TYPE=#classify#
+	</select>
+	
+	<select id="getTransportPriceList" resultClass="routeVo" parameterClass="String">
+		SELECT DISTINCT
+         	   A.ROUTE_NAME,
+         	   A.TRAN_TYPE,
+         	   A.AIRPORT_ID,
+         	   B.AIRPORT_NAME,
+         	   A.ROUTE_PRICE
+     	  FROM ROUTE A, (SELECT AIRPORT_ID,
+                          	    AIRPORT_NAME
+                           FROM AIRPORT) B , (SELECT TRAN_TYPE
+                                                     ,AIRPORT_ID
+                                                     ,TRAN_FILE
+                                                FROM TRANSPORT) C
+    	 WHERE B.AIRPORT_ID=A.AIRPORT_ID
+    	   AND B.AIRPORT_ID=C.AIRPORT_ID
+     	   AND C.AIRPORT_ID=A.AIRPORT_ID
+     	   AND B.AIRPORT_NAME=#airport_name#
+	</select>
+	
+</sqlMap>

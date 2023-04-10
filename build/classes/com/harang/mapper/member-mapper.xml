@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+	
+<sqlMap namespace="member">
+
+	<!-- 로그인 -->
+	<select id="loginMember" parameterClass="memVo" resultClass="memVo">
+		SELECT * 
+		  FROM MEMBER 
+		 WHERE MEM_ID = #mem_id# 
+		   AND MEM_PASS = #mem_pass# 
+		   AND MEM_STATUS = 'Y'
+		   AND MEM_ID NOT IN (SELECT MEM_ID
+                        		FROM BLACKLIST)
+	</select>
+	
+	<!-- 회원가입 -->
+	<insert id="insertMember" parameterClass="memVo">
+		INSERT INTO MEMBER (MEM_ID, MEM_PASS, MEM_NAME, MEM_NICK, MEM_BIR, MEM_MAIL, MEM_GENDER, MEM_TEL, MEM_STATUS, MEM_ACCOUNT)
+					VALUES (#mem_id#, #mem_pass#, #mem_name#, #mem_nick#, #mem_bir#, #mem_mail#, #mem_gender#, #mem_tel#, 'Y', '일반')
+	</insert>
+	
+	<!-- 아이디 찾기 -->
+	<select id="findId" parameterClass="memVo" resultClass="String">
+		SELECT MEM_ID 
+		  FROM MEMBER 
+		 WHERE MEM_NAME = #mem_name# 
+		   AND MEM_MAIL = #mem_mail# 
+	</select>
+	
+	<!-- 비밀번호 찾기 (회원 정보 확인) -->
+	<select id="findPass" parameterClass="memVo" resultClass="int">
+		SELECT COUNT(*) 
+		  FROM MEMBER 
+		 WHERE MEM_NAME = #mem_name#
+		   AND MEM_ID = #mem_id# 
+		   AND MEM_MAIL = #mem_mail# 
+	</select>
+	
+	<!-- 임시 비밀번호 발급 -->
+	<update id="issueTempPass" parameterClass="map">
+		UPDATE MEMBER SET MEM_PASS = #mem_pass# 
+		            WHERE MEM_ID = #mem_id#
+	</update>
+
+	<!--  아이디 중복조회 작성자 :심동근 -->
+	<select id="getMemberCount" parameterClass="string" resultClass="int">
+		select count(*) cnt from member where mem_id = #mem_id#
+	</select>
+	
+	<!--  회원 정보 수정 -->
+	<update id="updateMemberInfo" parameterClass="memVo">
+		UPDATE MEMBER SET
+		<dynamic>
+			<isNotEmpty property="mem_pass">
+				MEM_PASS = #mem_pass#
+			</isNotEmpty>
+			<isNotEmpty property="mem_nick">
+				MEM_NICK = #mem_nick#
+			</isNotEmpty>
+			<isNotNull property="mem_tel">
+				MEM_TEL = #mem_tel#
+			</isNotNull>
+			<isNotNull property="mem_gender">
+				MEM_GENDER = #mem_gender#
+			</isNotNull>
+		</dynamic>
+				WHERE MEM_ID = #mem_id#
+	</update>
+	
+	<!-- 회원 탈퇴 -->
+	<update id="deleteMember" parameterClass="String">
+		UPDATE MEMBER SET MEM_STATUS = 'N'
+					WHERE MEM_ID = #mem_id#
+	</update>
+	
+	<!-- 회원 목록 조회 -->
+	<select id="getMemberList" resultClass="memVo">
+		SELECT * 
+		  FROM MEMBER 
+	</select>
+	
+	<!-- 회원 정보 조회 -->
+	<select id="getMemInfo" parameterClass="String" resultClass="memVo">
+		SELECT * 
+		  FROM MEMBER
+		 WHERE MEM_ID = #mem_id#
+	</select>
+</sqlMap>

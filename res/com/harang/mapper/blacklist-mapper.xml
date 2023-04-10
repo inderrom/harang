@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+	
+<sqlMap namespace="blk">
+	
+	<!-- 블랙리스트 회원 리스트 목록 -->
+	<select id="getBlklist" parameterClass="blkVo" resultClass="blkVo">
+		SELECT * 
+		  FROM BLACKLIST
+		  <dynamic prepend="WHERE">
+		  	<isNotEmpty property="mem_id">
+				 MEM_ID = #mem_id#
+		  	</isNotEmpty>
+		  </dynamic>
+	</select>
+	
+	<!-- 블랙리스트 회원 추가 -->
+	<insert id="insertBlklist" parameterClass="blkVo">
+		INSERT INTO BLACKLIST (BLK_NUM, MEM_ID, BLK_TYPE, BLK_DATE, BLK_PERIOD, BLK_ENDDATE)
+					VALUES (SEQ_BLACKLIST.NEXTVAL, #mem_id#, #blk_type#, SYSDATE, #blk_period#, SYSDATE + TO_NUMBER(#blk_period#))
+	</insert>
+	
+	<!-- 블랙리스트 회원 수정 -->
+	<update id="updateBlklist" parameterClass="blkVo">
+		UPDATE BLACKLIST SET BLK_PERIOD = #blk_period#
+					   WHERE BLK_NUM = #blk_num#
+	</update>
+	
+	<!-- 블랙리스트 회원 삭제 -->
+	<delete id="deleteBlklist" parameterClass="blkVo">
+		DELETE FROM BLACKLIST
+		WHERE BLK_NUM = #blk_num#
+	</delete>
+	
+	<!-- 신고 회원 목록 조회  -->
+	<select id="getReport" parameterClass="reportVo" resultClass="reportVo">
+		SELECT *
+		  FROM REPORT
+	</select>
+	
+	<!-- 신고 내역 삭제 -->
+	<delete id="deleteReport" parameterClass="int">
+		DELETE FROM REPORT
+		WHERE REP_NUM = #rep_num#
+	</delete>
+	
+	<!-- 신고 등록 -->
+	<insert id="insertReport" parameterClass="reportVo">
+		INSERT INTO REPORT (REP_NUM, MEM_ID, REP_TYPE, REP_CONTENT)
+					VALUES (SEQ_REPORT.NEXTVAL, #mem_id#, #rep_type#, #rep_content#)
+	</insert>
+	
+	<!-- 블랙리스트 갱신 -->
+	<update id="checkBlkList">
+		UPDATE BLACKLIST A SET BLK_PERIOD = (SELECT CEIL(B.BLK_ENDDATE - SYSDATE)
+											   FROM BLACKLIST B
+											  WHERE A.BLK_NUM = B.BLK_NUM)
+	</update>
+</sqlMap>

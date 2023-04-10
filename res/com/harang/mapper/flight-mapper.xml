@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-ibatis.apache.org//DTD SQL MAP 2.0/EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+	
+<sqlMap namespace="flight">
+	
+	<!-- 항공편 조회 -->
+	<select id="getFlightList" parameterClass="flightVo" resultClass="flightVo">
+		SELECT *
+		  FROM FLIGHT
+		 WHERE FLI_DEPPORT = #fli_depport#
+		   AND FLI_ARRPORT = #fli_arrport#
+		   AND FLI_DAYOFWEEK LIKE '%' || #fli_dayofweek# || '%'
+		 ORDER BY FLI_DEPTIME
+	</select>
+	
+	<!-- 공항 조회 -->
+	<select id="getAirportList" parameterClass="String" resultClass="airportVo">
+		SELECT * 
+		  FROM AIRPORT
+		 WHERE AIRPORT_NAME LIKE '%' || #airport_name# || '%'
+	</select>
+	
+	<!-- 특정 항공편 정보 조회 -->
+	<select id="getFlight" parameterClass="String" resultClass="flightVo">
+		SELECT * 
+		  FROM FLIGHT
+		 WHERE FLI_ID = #fli_id#
+	</select>
+	
+	<!-- 최저가 항공편 -->
+	<select id="getCheapFlight" parameterClass="String" resultClass="flightVo">
+		SELECT A.* 
+		  FROM FLIGHT A, AIRPORT B
+		 WHERE A.FLI_ARRPORT = B.AIRPORT_NAME
+		   AND B.AIRPORT_ID = #airport_id#
+		 ORDER BY FLI_PRICE
+	</select>
+	
+</sqlMap>

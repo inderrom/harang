@@ -1,0 +1,93 @@
+@charset "UTF-8";
+	
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lobster&display=swap');
+	/* navbar style 모음 */	
+	
+	#icon{
+		width : 50px;
+		height: 30px;
+		margin-right : 5px;
+	}
+	#login{
+		float : right-side;
+		margin-right : 17%;
+		border : none;
+		background-color : #1DE9B6;
+		font-family: 'Public Sans', sans-serif;
+	}  
+	.navbar-brand{
+		font-size:25pt;
+		font-family: 'Lobster', cursive;
+		margin-left : 18%;
+	}
+	ul{
+		margin-left : 15%;
+	}
+	#navBtn4{
+		border-left : 1px solid black;
+		border-right : 1px solid black;
+		padding-left : 50px;
+		padding-right : 50px;
+		padding-bottom : 10px;
+		padding-top : 10px;
+		font-family: 'Noto Sans KR', sans-serif;
+	}
+	li #navBtn1, #navBtn2, #navBtn3{
+		border-left : 1px solid black;
+		padding-left : 50px;
+		padding-right : 50px;
+		padding-bottom : 10px;
+		padding-top : 10px;
+		font-family: 'Noto Sans KR', sans-serif;
+	}
+	
+	#subMenuList{
+		display : none;
+		position : absolute;
+		z-index : 1;
+		
+		width : 100%;
+		height :220px;
+		background : white;
+		
+		border-bottom-left-radius : 10px;
+		border-bottom-right-radius : 10px;
+		
+		border-top : 3px solid #1DE9B6;
+		font-family: 'Noto Sans KR', sans-serif;
+		
+        display: flex;
+	}
+	.subMenuBlock{
+		margin-left: 10px;
+		margin-right : 10px;
+		width:50%;
+	}
+	.subMenu{
+		position: absolute;
+		list-style-type : none;
+		
+		margin : 0px;
+		padding : 0px;
+	}
+	.subMenu li{
+		font-size : 15px;
+		margin-top : 15px;
+		margin-right :25px;
+	}
+	.subMenu li a{
+		text-decoration : none;
+		color : black;
+	}
+	/* footer style*/
+	#footerDiv{
+		width : 1250px;
+		height : 100px;
+		
+		margin : 0px auto;
+	}
+	#footerDiv p{
+		font-size : 0.8em;
+		color : grey;
+	}

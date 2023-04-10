@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+	
+<sqlMap namespace="tour">
+
+	<!--여행지 추가 -->
+	<insert id="insertTourRecomm" parameterClass="tourVo">
+		 INSERT INTO TOURRECOMM (TOUR_NUM
+								,AIRPORT_ID
+								,TOUR_NAME
+								,TOUR_PHRASE
+								,TOUR_FILE
+								)
+		 				 VALUES (SEQ_TOURRECOMM.nextval
+		 						,#airport_id#
+		 						,#tour_name#
+		 						,#tour_phrase#
+		 						,#tour_file#
+		 						)
+	</insert>
+	
+	<!-- 여행지 목록 조회 -->
+	<select id="getTourList" resultClass="tourVo" >
+		SELECT * 
+		  FROM TOURRECOMM
+	</select>
+	
+	<!-- 번호에 해당하는 여행지 조회 -->
+	<select id="getTour" parameterClass="int" resultClass="tourVo">
+		SELECT * 
+		  FROM TOURRECOMM
+		 WHERE TOUR_NUM = #tour_num#
+	</select>
+	
+	<!-- 여행지 삭제 -->
+	<delete id="deleteTour" parameterClass="int">
+		DELETE FROM TOURRECOMM
+			  WHERE TOUR_NUM = #tour_num#
+	</delete>
+	
+	<!-- 여행지 수정 -->
+	<update id="updateTour" parameterClass="tourVo">
+		UPDATE TOURRECOMM SET TOUR_NAME = #tour_name#,
+							  AIRPORT_ID = #airport_id#,
+							  TOUR_PHRASE = #tour_phrase#
+							  <dynamic>
+							  	<isNotEmpty property="tour_file" prepend=",">
+									TOUR_FILE = #tour_file#
+						 		</isNotEmpty>
+							  </dynamic>
+					    WHERE TOUR_NUM = #tour_num#
+	</update>
+	
+</sqlMap>

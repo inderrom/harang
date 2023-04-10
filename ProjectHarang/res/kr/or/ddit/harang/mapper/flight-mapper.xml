@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+	
+<sqlMap namespace="flight">
+
+	<insert id="insertFlight" parameterClass="flightVo">
+		INSERT INTO FLIGHT (FLI_ID, AIRLINE_ID, FLI_AIRLINE, FLI_DEPPORT, FLI_ARRPORT, FLI_DEPTIME, FLI_ARRTIME, FLI_PRICE, FLI_DAYOFWEEK) 
+				    VALUES (#fli_id#, #airline_id#, #fli_airline#, #fli_depport#, #fli_arrport#, #fli_deptime#, #fli_arrtime#, #fli_price#, #fli_dayofweek#)
+	</insert>
+	
+	<update id="updateFlight" parameterClass="flightVo">
+		UPDATE FLIGHT SET FLI_DAYOFWEEK = (SELECT FLI_DAYOFWEEK 
+											 FROM FLIGHT 
+											WHERE FLI_ID = #fli_id#) || #fli_dayofweek#
+				    WHERE  FLI_ID = #fli_id#
+	</update>
+</sqlMap>

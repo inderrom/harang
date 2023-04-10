@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+	
+<sqlMap namespace="board">
+
+	<!-- 게시글 목록 -->
+	<select id="getBoardList" parameterClass="boardVo" resultClass="boardVo">
+		SELECT A.*
+		  FROM (SELECT ROWNUM AS RNUM, B.*
+		  		  FROM (SELECT * 
+		  		  		  FROM $board_type$ 
+		  		  		 <dynamic prepend="WHERE">
+						 	<isNotEmpty property="board_title" prepend="AND">
+						  		BOARD_TITLE LIKE '%' || #board_title# || '%'
+						 	</isNotEmpty>
+						  	<isNotEmpty property="board_content" prepend="AND">
+						  		BOARD_CONTENT LIKE '%' || #board_content# || '%'
+						  	</isNotEmpty>
+						  	<isNotEmpty property="mem_nick" prepend="AND">
+						  		MEM_NICK LIKE '%' || #mem_nick# || '%'
+						  	</isNotEmpty>
+						 </dynamic>
+		  		  		 ORDER BY BOARD_ID DESC) B 
+	   <![CDATA[ WHERE ROWNUM <= #end#) A 
+		 WHERE A.RNUM >= #start# ]]>
+	</select>
+	
+	<!-- 전체 게시글 개수 -->
+	<select id="getTotalCount" parameterClass="boardVo" resultClass="int">
+		SELECT COUNT(*)
+		  FROM $board_type$ 
+		 <dynamic prepend="WHERE">
+		 	<isNotEmpty property="board_title" prepend="AND">
+		  		BOARD_TITLE LIKE '%' || #board_title# || '%'
+		 	</isNotEmpty>
+		  	<isNotEmpty property="board_content" prepend="AND">
+		  		BOARD_CONTENT LIKE '%' || #board_content# || '%'
+		  	</isNotEmpty>
+		  	<isNotEmpty property="mem_nick" prepend="AND">
+		  		MEM_NICK LIKE '%' || #mem_nick# || '%'
+		  	</isNotEmpty>
+		 </dynamic>
+	</select>
+	
+	<!-- 게시글 추가 -->
+	<insert id="insertBoard" parameterClass="boardVo">
+		<selectKey keyProperty="board_id" resultClass="int">
+			SELECT SEQ_$board_type$.NEXTVAL FROM DUAL
+		</selectKey>
+		
+		INSERT INTO $board_type$ (BOARD_ID
+								, MEM_ID
+								, MEM_NICK
+								, BOARD_TITLE
+								, BOARD_CONTENT
+								, BOARD_DATE
+								, BOARD_HIT)
+						  VALUES (#board_id#
+						  		, #mem_id#
+						  		, #mem_nick#
+						  		, #board_title#
+						  		, #board_content#
+						  		, SYSDATE
+						  		, 0)
+	</insert>
+	
+	<!-- 게시글 수정 -->
+	<update id="updateBoard" parameterClass="boardVo">
+		UPDATE $board_type$ SET 
+							BOARD_TITLE = #board_title#,
+							BOARD_CONTENT = #board_content#
+				WHERE BOARD_ID = #board_id#
+	</update>
+	
+	<!-- 게시글 삭제 -->
+	<delete id="deleteBoard" parameterClass="boardVo">
+		DELETE FROM $board_type$
+			  WHERE BOARD_ID = #board_id#
+	</delete>
+	
+	<!-- 게시글 상세보기 -->
+	<select id="getBoardDetail" parameterClass="boardVo" resultClass="boardVo">
+		SELECT * 
+		  FROM $board_type$ 
+		 WHERE BOARD_ID = #board_id# 
+	</select>
+	
+	<!-- 조회수 증가  -->
+	<update id="updateHit" parameterClass="boardVo">
+		UPDATE $board_type$ SET BOARD_HIT = (SELECT MAX(BOARD_HIT) + 1
+											   FROM $board_type$
+											  WHERE BOARD_ID = #board_id#)
+						  WHERE BOARD_ID = #board_id#
+	</update>
+	
+	<!-- 댓글 목록 -->	
+	<select id="getCommtList" parameterClass="commtVo" resultClass="commtVo">
+		SELECT A.*, LEVEL - 1 AS DEPTH
+  		  FROM $commt_type$ A
+ 		 WHERE BOARD_ID = #board_id#
+ 		 START WITH TARGET_ID = 0
+ 	   CONNECT BY PRIOR COMMT_ID = TARGET_ID
+ 		 ORDER SIBLINGS BY COMMT_ID
+	</select>
+	
+	<!-- 댓글 추가 -->
+	<insert id="insertCommt" parameterClass="commtVo">
+		INSERT INTO $commt_type$ (COMMT_ID
+								, BOARD_ID
+								, MEM_ID
+								, MEM_NICK
+								, COMMT_CONTENT
+								, COMMT_DATE
+								, TARGET_ID
+								)
+						  VALUES (SEQ_$commt_type$.NEXTVAL
+								, #board_id#
+								, #mem_id#
+								, #mem_nick#
+								, #commt_content#
+								, SYSDATE
+								, #target_id#
+								)
+	</insert>
+	
+	<update id="updateCommt" parameterClass="commtVo">
+		UPDATE $commt_type$ SET COMMT_CONTENT = #commt_content#
+						  WHERE COMMT_ID = #commt_id#
+	</update>
+	
+	<!-- 댓글 삭제 -->
+	<!-- 대댓글이 있을 경우 내용을 NULL 처리 -->
+	<!-- 대댓글이 없을 경우 해당 댓글 삭제 -->
+	<update id="deleteCommt" parameterClass="commtVo">
+		{CALL
+			DECLARE
+			    V_COUNT NUMBER;
+			BEGIN
+			    SELECT COUNT(*)
+			      INTO V_COUNT
+			      FROM $commt_type$
+			     WHERE BOARD_ID = #board_id#
+			       AND TARGET_ID = #commt_id#
+			     START WITH TARGET_ID = (SELECT TARGET_ID
+			                               FROM $commt_type$
+			                              WHERE COMMT_ID = #commt_id#)
+			   CONNECT BY PRIOR COMMT_ID = TARGET_ID
+			     ORDER SIBLINGS BY COMMT_ID;
+			
+			    CASE WHEN V_COUNT = 0 THEN
+			        DELETE FROM $commt_type$
+			              WHERE COMMT_ID = #commt_id#;
+			         WHEN V_COUNT >= 1 THEN
+			        UPDATE $commt_type$ SET COMMT_CONTENT = NULL
+			                          WHERE COMMT_ID = #commt_id#;
+			    END CASE;
+			    COMMIT;
+			END
+		}
+	</update>
+	
+	<!-- 댓글 연쇄 삭제 -->
+	<!-- 댓글의 대댓글까지 삭제된 경우 모두 삭제처리 -->
+	<update id="deleteCommtCascade" parameterClass="commtVo">
+		{CALL
+			DECLARE
+			    V_COUNT NUMBER;
+			    
+			    CURSOR CUR_COMMT IS
+			        SELECT COMMT_ID, BOARD_ID, TARGET_ID
+			          FROM $commt_type$
+			         WHERE BOARD_ID = #board_id#
+			           AND COMMT_CONTENT IS NULL;
+			BEGIN
+			    FOR REC IN CUR_COMMT LOOP
+			        SELECT COUNT(*)
+			          INTO V_COUNT
+			          FROM $commt_type$
+			         WHERE TARGET_ID NOT IN (0, REC.TARGET_ID)
+			           AND BOARD_ID = REC.BOARD_ID
+			           AND COMMT_CONTENT IS NOT NULL
+			         START WITH TARGET_ID = REC.COMMT_ID
+			       CONNECT BY PRIOR COMMT_ID = TARGET_ID;
+			       
+			       IF V_COUNT = 0 THEN
+			        DELETE FROM $commt_type$
+			              WHERE COMMT_ID = REC.COMMT_ID;
+			       END IF;
+			    END LOOP;
+			    COMMIT;
+			END
+		}
+	</update>
+	
+	
+	
+	
+	<!-- 특정 사용자가 작성한 자유게시판 게시물 목록 -->
+	<select id="getMemFreeBoardList" parameterClass="String" resultClass="boardVo">
+		SELECT BOARD_ID, MEM_ID, MEM_NICK, BOARD_TITLE, BOARD_DATE
+		  FROM FREEBOARD
+		WHERE MEM_ID = #mem_id#
+		ORDER BY BOARD_DATE DESC
+	</select>
+	<!-- 특정 사용자가 작성한 여행 후기 게시판 게시물 목록 -->
+	<select id="getMemReviewBoardList" parameterClass="String" resultClass="boardVo">
+		SELECT BOARD_ID, MEM_ID, MEM_NICK, BOARD_TITLE, BOARD_DATE
+		  FROM REVIEWBOARD
+		WHERE MEM_ID = #mem_id#
+		ORDER BY BOARD_DATE DESC
+	</select>
+	<!-- 특정 사용자가 작성한 문의게시판 게시물 목록 -->
+	<select id="getMemQuesBoardList" parameterClass="String" resultClass="boardVo">
+		SELECT BOARD_ID, MEM_ID, MEM_NICK, BOARD_TITLE, BOARD_DATE
+		  FROM QUESBOARD
+		WHERE MEM_ID = #mem_id#
+		ORDER BY BOARD_DATE DESC
+	</select>
+	
+	
+	<!-- 특정 사용자가 작성한 자유게시판 댓글 목록 -->
+	<select id="getMemFreeCommtList" parameterClass="String" resultClass="commtVo">
+		SELECT COMMT_ID, BOARD_ID, MEM_ID, MEM_NICK, COMMT_CONTENT, COMMT_DATE
+		  FROM FREECOMMT
+		WHERE MEM_ID = #mem_id#
+		ORDER BY COMMT_DATE DESC
+	</select>
+	
+	<!-- 특정 사용자가 작성한 여행 후기 게시판 댓글 목록 -->
+	<select id="getMemReviewCommtList" parameterClass="String" resultClass="commtVo">
+		SELECT COMMT_ID, BOARD_ID, MEM_ID, MEM_NICK, COMMT_CONTENT, COMMT_DATE
+		  FROM REVIEWCOMMT
+		WHERE MEM_ID = #mem_id#
+		ORDER BY COMMT_DATE DESC
+	</select>
+	
+	<!-- 여행 가이드 게시물 중 이미지가 있는 최신 5개만 조회 -->
+	<select id="getRecentGuideboard" resultClass="boardVo">
+		SELECT * 
+  		  FROM (SELECT * 
+          		  FROM GUIDEBOARD
+         		 WHERE BOARD_CONTENT LIKE '%src="data:image%'
+         		 ORDER BY BOARD_DATE DESC)
+<![CDATA[WHERE ROWNUM <= 5]]>
+	</select>
+	
+	<!-- 전체 게시물 목록 -->
+	<select id="getBoardAll" parameterClass="String" resultClass="boardVo">
+		SELECT * 
+		  FROM $board_type$
+		 ORDER BY BOARD_DATE DESC
+	</select>
+	<!-- 전체 댓글 목록 -->
+	<select id="getCommtAll" parameterClass="String" resultClass="commtVo">
+		SELECT * 
+		  FROM $commt_type$
+		 ORDER BY COMMT_DATE DESC
+	</select>
+</sqlMap>

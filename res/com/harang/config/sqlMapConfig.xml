@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMapConfig
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map Config 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-config-2.dtd">
+	
+<sqlMapConfig>
+
+	<!-- ibatis에서 사용할 DB의 정보를 담고있는 properties 파일 불러오기 -->
+	<properties resource="com/harang/config/dbinfo.properties"/>
+	
+	<!-- mapper에서 namespace를 사용하기 위한 설정 -->
+	<settings useStatementNamespaces="true"/>
+	
+	
+	<!-- mapper에서 사용할 VO 객체 연결 및 별칭 설정하기 -->
+	<typeAlias alias="memVo" type="com.harang.vo.MemberVO"/>
+	
+	<typeAlias alias="airlineVo" type="com.harang.vo.AirlineVO"/>
+	<typeAlias alias="airportVo" type="com.harang.vo.AirportVO"/>
+	<typeAlias alias="flightVo" type="com.harang.vo.FlightVO"/>
+	
+	<typeAlias alias="boardVo" type="com.harang.vo.BoardVO"/>
+	<typeAlias alias="commtVo" type="com.harang.vo.CommentVO"/>
+	<typeAlias alias="fileVo" type="com.harang.vo.FileVO"/>
+	
+	<typeAlias alias="facVo" type="com.harang.vo.FacilityVO"/>
+	<typeAlias alias="parkVo" type="com.harang.vo.ParkVO"/>
+	<typeAlias alias="transportVo" type="com.harang.vo.TransportVO"/>
+	<typeAlias alias="blkVo" type="com.harang.vo.BlkVO"/>
+	<typeAlias alias="reportVo" type="com.harang.vo.ReportVO"/>
+	
+	<typeAlias alias="ticketVo" type="com.harang.vo.TicketVO"/>
+	<typeAlias alias="passengerVo" type="com.harang.vo.PassengerVO"/>
+	<typeAlias alias="tourVo" type="com.harang.vo.TourVO"/>
+	<typeAlias alias="routeVo" type="com.harang.vo.RouteVO"/>
+	
+	<!-- 불러온 properties 파일의 내용으로 ibatis 설정하기 -->
+	<transactionManager type="JDBC">
+		<dataSource type="SIMPLE">
+			<property name="JDBC.Driver" value="${driver}"/>		
+			<property name="JDBC.ConnectionURL" value="${url}"/>		
+			<property name="JDBC.Username" value="${user}"/>		
+			<property name="JDBC.Password" value="${pass}"/>		
+		</dataSource>
+	</transactionManager>
+	
+	
+	<!-- ibatis에서 사용할 mapper 연결하기 -->
+	<sqlMap resource="com/harang/mapper/member-mapper.xml"/>
+	<sqlMap resource="com/harang/mapper/main-mapper.xml"/>
+	<sqlMap resource="com/harang/mapper/facility-mapper.xml"/>
+	<sqlMap resource="com/harang/mapper/board-mapper.xml"/>
+	<sqlMap resource="com/harang/mapper/blacklist-mapper.xml"/>
+	<sqlMap resource="com/harang/mapper/ticket-mapper.xml"/>
+	<sqlMap resource="com/harang/mapper/flight-mapper.xml"/>
+ 	<sqlMap resource="com/harang/mapper/tour-mapper.xml"/>
+	
+	
+</sqlMapConfig>

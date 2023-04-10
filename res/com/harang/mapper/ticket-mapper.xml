@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+	
+<sqlMap namespace="ticket">
+
+	<select id="getTicketList" parameterClass="ticketVo" resultClass="ticketVo">
+		SELECT A.*, B.AIRLINE_NAME
+		  FROM TICKET A, FLIGHT B
+		 WHERE A.FLI_ID = B.FLI_ID
+   		   AND MEM_ID = #mem_id#
+	</select>
+	
+	<select id="getTicketPage" parameterClass="ticketVo" resultClass="ticketVo">
+	    SELECT A.*
+  		  FROM (SELECT ROWNUM AS RNUM, B.*
+		  		  FROM (SELECT T.*, F.AIRLINE_NAME
+				  		  FROM TICKET T, FLIGHT F
+				  		 WHERE MEM_ID = #mem_id#
+		                   AND T.FLI_ID = F.FLI_ID
+				  		 ORDER BY TO_DATE(SUBSTR(T.TICKET_ID, 13), 'yyyyMMddHH24MI') DESC) B 
+       <![CDATA[ WHERE ROWNUM <= #end#) A 
+		 WHERE A.RNUM >= #start#]]>
+	</select>
+	
+	<select id="getFlightInfo" parameterClass="String" resultClass="flightVo">
+		SELECT * 
+		  FROM FLIGHT
+		 WHERE FLI_ID = #fli_id#
+	</select>
+	
+	<select id="getPssgList" parameterClass="String" resultClass="passengerVo">
+		SELECT * 
+		  FROM PASSENGER
+		 WHERE TICKET_ID = #ticket_id#
+	</select>
+	
+	<insert id="insertTicket" parameterClass="ticketVo">
+		INSERT INTO TICKET (ticket_id, fli_id, mem_id, ticket_date)
+					VALUES (#ticket_id#, #fli_id#, #mem_id#, #ticket_date#)
+	</insert>
+	
+	<insert id="insertPassenger" parameterClass="passengerVo">
+		INSERT INTO PASSENGER (pssg_seat, ticket_id, pssg_name, pssg_bir)
+					   VALUES (#pssg_seat#, #ticket_id#, #pssg_name#, #pssg_bir#)
+	</insert>
+	
+	<select id="getTotalCount" parameterClass="String" resultClass="int">
+		SELECT COUNT(*)
+		  FROM TICKET
+		 WHERE MEM_ID = #mem_id#
+	</select>
+	
+	<select id="getOccupiedSeat" parameterClass="Map" resultClass="passengerVo">
+		SELECT A.PSSG_SEAT
+		  FROM PASSENGER A, TICKET B
+		 WHERE A.TICKET_ID = B.TICKET_ID
+		   AND TO_CHAR(B.TICKET_DATE, 'yyyy-MM-dd') = #ticket_date#
+		   AND B.FLI_ID = #fli_id#
+	</select>
+	
+</sqlMap>
